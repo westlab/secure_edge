@@ -1,0 +1,73 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#ifdef WIN32
+#include <winsock2.h>
+#include <windows.h>
+#else
+#include <netdb.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <unistd.h>
+#endif
+#include "tls.h"
+#include "decry.h"
+#define BUFFER_SIZE 255
+
+void display(char *buffer, int buffer_size)
+{
+    
+    static char recv_buf[BUFFER_SIZE+1];
+    memcpy(&recv_buf,buffer,buffer_size);
+    recv_buf[buffer_size] ='\0';
+    printf("%s",recv_buf);
+    printf("\n");
+
+} 
+
+int main ( int argc, char *argv[] )
+{
+  SubParameters *par2;
+  TLSPlaintext *header2;
+  short send_buffer_size;
+  int padding_length=0;
+  header2 =malloc(sizeof(TLSPlaintext));
+  FILE *hf;//headerfile
+  FILE *kf;
+  hf=fopen("1buffer.dat","rb");
+  kf=fopen("key.dat","rb");
+  fread(header2,5,1,hf);
+  send_buffer_size =header2->length;
+  unsigned char *encrypt2,
+                *decrypt2;
+  par2 =malloc(sizeof(*par2));
+  encrypt2 =(unsigned char *)malloc(send_buffer_size);
+  decrypt2 =(unsigned char *)malloc(send_buffer_size);
+
+  fread(encrypt2,send_buffer_size,1,hf);
+  fread(par2,sizeof(*par2),1,kf);
+  send_buffer_size = tls_decrypt2(header2,encrypt2,send_buffer_size,&decrypt2,par2);
+  decrypt2[send_buffer_size]='\0';
+ 
+ FILE *test,*test2;
+  test =fopen("4buffer.dat","wb");
+  test2=fopen("5buffer.dat","wb");
+  fwrite(decrypt2,send_buffer_size,1,test);
+  fwrite(encrypt2,send_buffer_size,1,test2);
+ fclose(test); 
+ fclose(test2);
+  printf ("%s",decrypt2);
+  printf("\n");
+  
+  free(par2); 
+  free(header2);
+  free(encrypt2);
+  free(decrypt2);
+  fclose(hf);
+  //fclose(kf);
+  return 0 ;
+
+}
+

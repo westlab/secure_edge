@@ -1,0 +1,10 @@
+[ca]
+default_ca =CA_default
+
+[CA_default]
+datebase =index.txt
+serial=serial
+policy=policy_any
+
+[policy_any]
+commonName=supplied
